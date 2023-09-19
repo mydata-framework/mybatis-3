@@ -78,8 +78,17 @@ public class XMLMapperBuilder extends BaseBuilder {
   }
 
   public XMLMapperBuilder(InputStream inputStream, Configuration configuration, String resource, Map<String, XNode> sqlFragments) {
-    this(new XPathParser(inputStream, true, configuration.getVariables(), new XMLMapperEntityResolver()),
-        configuration, resource, sqlFragments);
+    this(
+      new XPathParser(
+        inputStream,
+        true,
+        configuration.getVariables(),
+        new XMLMapperEntityResolver()
+      ),
+      configuration,
+      resource,
+      sqlFragments
+    );
   }
 
   private XMLMapperBuilder(XPathParser parser, Configuration configuration, String resource, Map<String, XNode> sqlFragments) {
@@ -92,6 +101,7 @@ public class XMLMapperBuilder extends BaseBuilder {
 
   public void parse() {
     if (!configuration.isResourceLoaded(resource)) {
+      //p-step-1.0042 经过这里解析,configuration中就会将statementId和对应的标签方法关联起来了, 我们看看内部的实现过程
       configurationElement(parser.evalNode("/mapper"));
       configuration.addLoadedResource(resource);
       bindMapperForNamespace();
@@ -106,7 +116,19 @@ public class XMLMapperBuilder extends BaseBuilder {
     return sqlFragments.get(refid);
   }
 
+  /**
+   * @param context
+   *
+   * p-step-1.0043 经过这里解析,configuration中就会将statementId和对应的标签方法关联起来了, 我们看看内部的实现过程
+   * context 内容相当于如下标签
+   * <mapper namespace="UserMapper">
+   *     <select id="selectById" resultType="map">
+   *         select * from user1 where id = #{id}
+   *     </select>
+   * </mapper>
+   */
   private void configurationElement(XNode context) {
+
     try {
       String namespace = context.getStringAttribute("namespace");
       if (namespace == null || namespace.isEmpty()) {
@@ -118,12 +140,18 @@ public class XMLMapperBuilder extends BaseBuilder {
       parameterMapElement(context.evalNodes("/mapper/parameterMap"));
       resultMapElements(context.evalNodes("/mapper/resultMap"));
       sqlElement(context.evalNodes("/mapper/sql"));
+
+      //p-step-1.0044 经过这里解析,configuration中就会将statementId和对应的标签方法关联起来了, 我们看看内部的实现过程
+      //这里可以看出来会解析select|insert|update|delete这几种标签
       buildStatementFromContext(context.evalNodes("select|insert|update|delete"));
+
     } catch (Exception e) {
       throw new BuilderException("Error parsing Mapper XML. The XML location is '" + resource + "'. Cause: " + e, e);
     }
   }
 
+  //p-step-1.0045
+  // 这里做了个判断后进入到 buildStatementFromContext 重载方法, list 为当前mapper的select 增删改查标签, 传递的requiredDatabaseId为null
   private void buildStatementFromContext(List<XNode> list) {
     if (configuration.getDatabaseId() != null) {
       buildStatementFromContext(list, configuration.getDatabaseId());
@@ -131,10 +159,20 @@ public class XMLMapperBuilder extends BaseBuilder {
     buildStatementFromContext(list, null);
   }
 
+  /**
+   * @param list
+   * @param requiredDatabaseId
+   *
+   * p-step-1.0046
+   * 这里传递来了list为当前mapper的select 增删改查标签
+   * 遍历select标签, 将每一个标签构建成为一个 XMLStatementBuilder , 然后再使用它的 parseStatementNode() 方法
+   * 构造方法仅仅是赋值, 主要在 parseStatementNode() 方法中进行解析, 我们进去看看解析过程
+   */
   private void buildStatementFromContext(List<XNode> list, String requiredDatabaseId) {
     for (XNode context : list) {
       final XMLStatementBuilder statementParser = new XMLStatementBuilder(configuration, builderAssistant, context, requiredDatabaseId);
       try {
+        //进去
         statementParser.parseStatementNode();
       } catch (IncompleteElementException e) {
         configuration.addIncompleteStatement(statementParser);

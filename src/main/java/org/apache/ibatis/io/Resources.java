@@ -30,8 +30,18 @@ import java.util.Properties;
  *
  * @author Clinton Begin
  */
+
+/**
+ * p-step-1.0003 Resources 在 mybatis 的 io 包下面,
+ * 在io这个包下就表示这个类是一个资源读取相关的类;
+ * 这个类的注释: A class to simplify access to resources through the classloader.
+ * 说明这个类是为了简化 ClassLoaader 对于资源的访问
+ */
 public class Resources {
 
+  /**
+   * p-step-1.0008 这里是new 了一个 ClassLoaderWrapper , 我们进去到 ClassLoaderWrapper 类中看一下这个类的定义
+   */
   private static ClassLoaderWrapper classLoaderWrapper = new ClassLoaderWrapper();
 
   /**
@@ -95,6 +105,8 @@ public class Resources {
    * @param resource The resource to find
    * @return The resource
    * @throws java.io.IOException If the resource cannot be found or read
+   *
+   * p-step-1.0006 这里看到是调用了自己的重载方法, 我们进去看看
    */
   public static InputStream getResourceAsStream(String resource) throws IOException {
     return getResourceAsStream(null, resource);
@@ -107,6 +119,14 @@ public class Resources {
    * @param resource The resource to find
    * @return The resource
    * @throws java.io.IOException If the resource cannot be found or read
+   *
+   * p-step-1.0007 进入到这里的重载方法, 我们可以打一个断点看看, 可以看到这里的类加载器classload传入的是null, resource传入的是全局配置文件的相对路径地址也就是我我们自己传入的路径 mybatis-config.xml
+   * 这里有一个关键的代码 classLoaderWrapper , 执行了 classLoaderWrapper 的 getResourceAsStream 方法, 那么 classLoaderWrapper 这个对象是什么对象呢 GOTO
+   *
+   *
+   * p-step-1.0010 看了classLoaderWrapper类的描述和作用, 我们接下来看看getResourceAsStream的实现,
+   * 为什么使用classLoaderWrapper? 是因为classLoaderWrapper内部实现了一些判断逻辑, 使得当前作为调用方法的上层代码逻辑更为清晰明了
+   *
    */
   public static InputStream getResourceAsStream(ClassLoader loader, String resource) throws IOException {
     InputStream in = classLoaderWrapper.getResourceAsStream(resource, loader);
@@ -153,6 +173,8 @@ public class Resources {
    * @param resource The resource to find
    * @return The resource
    * @throws java.io.IOException If the resource cannot be found or read
+   *
+   * p-step-1.0005 这里包了一层getResourceAsStream我们进去看看
    */
   public static Reader getResourceAsReader(String resource) throws IOException {
     Reader reader;

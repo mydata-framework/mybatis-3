@@ -241,6 +241,34 @@ public class MapperBuilderAssistant extends BaseBuilder {
     return new Discriminator.Builder(configuration, resultMapping, namespaceDiscriminatorMap).build();
   }
 
+  /**
+   * @param id
+   * @param sqlSource
+   * @param statementType
+   * @param sqlCommandType
+   * @param fetchSize
+   * @param timeout
+   * @param parameterMap
+   * @param parameterType
+   * @param resultMap
+   * @param resultType
+   * @param resultSetType
+   * @param flushCache
+   * @param useCache
+   * @param resultOrdered
+   * @param keyGenerator
+   * @param keyProperty
+   * @param keyColumn
+   * @param databaseId
+   * @param lang
+   * @param resultSets
+   * @return
+   *
+   * p-step-1.0048 看看内部实现; Assistant: 助手的意思
+   *
+   * 这里根据XMLStatementBuilder传递过来了一个select Node的参数, 创建了一个 MappedStatement.Builder statementBuilder ,
+   * 然后 put 到了 Configuration 中的 Map<String, MappedStatement> mappedStatements 去了, key是id,value是MappedStatement statement
+   */
   public MappedStatement addMappedStatement(
       String id,
       SqlSource sqlSource,
@@ -261,15 +289,17 @@ public class MapperBuilderAssistant extends BaseBuilder {
       String keyColumn,
       String databaseId,
       LanguageDriver lang,
-      String resultSets) {
+      String resultSets
+  ) {
 
     if (unresolvedCacheRef) {
       throw new IncompleteElementException("Cache-ref not yet resolved");
     }
 
     id = applyCurrentNamespace(id, false);
-    boolean isSelect = sqlCommandType == SqlCommandType.SELECT;
+    boolean isSelect = sqlCommandType == SqlCommandType.SELECT; //true
 
+    //使用所有的参数, 构建了一个statementBuilder
     MappedStatement.Builder statementBuilder = new MappedStatement.Builder(configuration, id, sqlSource, sqlCommandType)
         .resource(resource)
         .fetchSize(fetchSize)
@@ -288,13 +318,21 @@ public class MapperBuilderAssistant extends BaseBuilder {
         .useCache(valueOrDefault(useCache, isSelect))
         .cache(currentCache);
 
+    //这里返回是null
     ParameterMap statementParameterMap = getStatementParameterMap(parameterMap, parameterType, id);
     if (statementParameterMap != null) {
       statementBuilder.parameterMap(statementParameterMap);
     }
 
+    //这里走了一趟build才被放到configuration中, 我们看看build中的内容, 看了内部内容也仅仅是赋值而已,
+    //所以一个statement 也就是一个包含了所有必要参数的对象而已, 应该是在执行查询时候取出必要的信息
     MappedStatement statement = statementBuilder.build();
+
+    //p-step-1.0049
+    //这里就把当前的statement添加到configuration的Map<String, MappedStatement> mappedStatements中去了
     configuration.addMappedStatement(statement);
+
+
     return statement;
   }
 

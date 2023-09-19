@@ -21,6 +21,12 @@ import java.sql.Connection;
  * Creates an {@link SqlSession} out of a connection or a DataSource
  *
  * @author Clinton Begin
+ *
+ * p-step-1.0015
+ * 我们看到 SqlSessionFactory这个类,类的介绍是 Creates an {@link SqlSession} out of a connection or a DataSource,
+ * 从连接或DataSource创建出SqlSession对象,
+ * 同时提供了一个getConfiguration 方法,
+ * 这里总结 SqlSessionFactory 就提供了两类核心方法, 一个是获取 SqlSession , 一个是获取 Configuration 配置对象
  */
 public interface SqlSessionFactory {
 

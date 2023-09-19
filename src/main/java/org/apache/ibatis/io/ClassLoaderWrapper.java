@@ -1,17 +1,17 @@
 /**
- *    Copyright 2009-2020 the original author or authors.
- *
- *    Licensed under the Apache License, Version 2.0 (the "License");
- *    you may not use this file except in compliance with the License.
- *    You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
+ * Copyright 2009-2020 the original author or authors.
+ * <p>
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.apache.ibatis.io;
 
@@ -22,10 +22,19 @@ import java.net.URL;
  * A class to wrap access to multiple class loaders making them work as one
  *
  * @author Clinton Begin
+ *
+ * p-step-1.0009 看到这个类的描述: A class to wrap access to multiple class loaders making them work as one
+ * 一个类，用于包装对多个类加载器的访问，使它们作为一个类加载器工作;
+ * 这个类其实就是classLoader的包装器, 所谓的包装器就是说这个类中其实封装了多个类加载器, 一个是defaultClassLoader一个是systemClassLoader
+ * 这样做的目的是什么呢?
+ * 这样做的目的就是, 在调用ClassLoaderWrapper的时候, 他可以从他内部封装的这多个类加载器中去选出一个正确的, 根据正确的classLoader去完成资源的加载;
+ *
  */
 public class ClassLoaderWrapper {
 
+  //默认类加载器
   ClassLoader defaultClassLoader;
+  //系统类加载器
   ClassLoader systemClassLoader;
 
   ClassLoaderWrapper() {
@@ -73,9 +82,15 @@ public class ClassLoaderWrapper {
    * @param resource    - the resource to find
    * @param classLoader - the first class loader to try
    * @return the stream or null
+   *
+   * p-step-1.0011 这里重载了getResourceAsStream, 传入了resource是我们的配置文件相对路径 mybatis-config.xml; 传入了classLoaders是通过getClassLoaders方法获取的一个ClassLoader[]数组, 获取是传入了一个classLoader是null
+   * 根据getClassLoaders这个方法, 实际上就是把传入的classLoader+defaultClassLoader+当前线程的classLoader和系统的systemClassLoader组成, 最终返回的其实就是相同的一个systemClassLoader而已
+   * 我们分别知道了 resource 和 classLoaders , 我们进入到重载方法: getResourceAsStream
+   *
    */
   public InputStream getResourceAsStream(String resource, ClassLoader classLoader) {
-    return getResourceAsStream(resource, getClassLoaders(classLoader));
+    ClassLoader[] classLoaders = getClassLoaders(classLoader);
+    return getResourceAsStream(resource, classLoaders);
   }
 
   /**
@@ -107,6 +122,8 @@ public class ClassLoaderWrapper {
    * @param resource    - the resource to get
    * @param classLoader - the classloaders to examine
    * @return the resource or null
+   *
+   * p-step-1.0012 这里就遍历 classLoader 当前第一个获取到资源的流对象就直接返回流对象
    */
   InputStream getResourceAsStream(String resource, ClassLoader[] classLoader) {
     for (ClassLoader cl : classLoader) {
@@ -198,12 +215,12 @@ public class ClassLoaderWrapper {
   }
 
   ClassLoader[] getClassLoaders(ClassLoader classLoader) {
-    return new ClassLoader[]{
-        classLoader,
-        defaultClassLoader,
-        Thread.currentThread().getContextClassLoader(),
-        getClass().getClassLoader(),
-        systemClassLoader};
+    //传入的指定的classLoader
+    //defaultClassLoader 默认的类加载器
+    //当前线程上下文的类加载器
+    //当前类的类加载器
+    //系统的类加载器
+    return new ClassLoader[]{classLoader, defaultClassLoader, Thread.currentThread().getContextClassLoader(), getClass().getClassLoader(), systemClassLoader};
   }
 
 }

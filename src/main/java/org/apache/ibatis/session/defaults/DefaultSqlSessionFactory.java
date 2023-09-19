@@ -38,6 +38,11 @@ public class DefaultSqlSessionFactory implements SqlSessionFactory {
 
   private final Configuration configuration;
 
+  /**
+   * @param configuration
+   * p-step-1.0025 这里可以看到, 仅仅是将上面的配置对象configuration赋值给了当前这个DefaultSqlSessionFactory而并没有做一些解析工作
+   * 所以解析工作还是在上面的将document解析为Configuration的过程之中
+   */
   public DefaultSqlSessionFactory(Configuration configuration) {
     this.configuration = configuration;
   }
