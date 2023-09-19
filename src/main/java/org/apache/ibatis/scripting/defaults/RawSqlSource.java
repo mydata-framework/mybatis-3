@@ -36,13 +36,26 @@ public class RawSqlSource implements SqlSource {
 
   private final SqlSource sqlSource;
 
+  //p-step-1.0054 进入this
   public RawSqlSource(Configuration configuration, SqlNode rootSqlNode, Class<?> parameterType) {
     this(configuration, getSql(configuration, rootSqlNode), parameterType);
   }
 
+  /**
+   * @param configuration
+   * @param sql
+   * @param parameterType
+   *
+   * p-step-1.0055
+   *
+   * 这里将原sql: select * from user1 where id = #{id} 经过解析到sqlSource中变为了 select * from user1 where id = ?
+   * 所以我们需要进入 SqlSourceBuilder 的 parse() 方法看看如何对sql进行解析的
+   *
+   */
   public RawSqlSource(Configuration configuration, String sql, Class<?> parameterType) {
     SqlSourceBuilder sqlSourceParser = new SqlSourceBuilder(configuration);
     Class<?> clazz = parameterType == null ? Object.class : parameterType;
+    //进入parse
     sqlSource = sqlSourceParser.parse(sql, clazz, new HashMap<>());
   }
 

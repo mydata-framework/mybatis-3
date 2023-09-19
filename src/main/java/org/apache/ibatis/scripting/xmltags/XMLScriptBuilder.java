@@ -63,12 +63,21 @@ public class XMLScriptBuilder extends BaseBuilder {
     nodeHandlerMap.put("bind", new BindHandler());
   }
 
+  /**
+   * @return
+   *
+   * p-step-1.0052
+   * 这里通过节点内容封装为了一个 MixedSqlNode 对象, 然后 MixedSqlNode 对象又被封装到了 RawSqlSource 或 DynamicSqlSource 中后返回
+   * 这过程中, 通过 new RawSqlSource 或 new DynamicSqlSource 后, 原本sql中的 select * from user where id = #{id} 变为了 select * from user where id = ? 可使用jdbc的prepareStatement可执行的sql
+   * 所以我们需要看看 new RawSqlSource 执行过程, 查看了会发现使用了SqlSourceBuilder去解析
+   */
   public SqlSource parseScriptNode() {
     MixedSqlNode rootSqlNode = parseDynamicTags(context);
     SqlSource sqlSource;
     if (isDynamic) {
       sqlSource = new DynamicSqlSource(configuration, rootSqlNode);
     } else {
+      //p-step-1.0053 进入
       sqlSource = new RawSqlSource(configuration, rootSqlNode, parameterType);
     }
     return sqlSource;

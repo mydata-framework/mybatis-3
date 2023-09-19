@@ -104,7 +104,16 @@ public class XMLStatementBuilder extends BaseBuilder {
           configuration.isUseGeneratedKeys() && SqlCommandType.INSERT.equals(sqlCommandType)) ? Jdbc3KeyGenerator.INSTANCE : NoKeyGenerator.INSTANCE;
     }
 
+    /**
+     * p-step-1.0050 紧接着我们要看看SqlSource的创建流程
+     * 首先它是由 通过 lang为null创建出来的langDriver实际上是 XMLLanguageDriver 的实例对象, 通过 createSqlSource() 方法获得到了 sqlSource
+     * BoundSql 封装了sql语句, 参数以及相关信息, BoundSql 仅包含一个 getBoundSql() 方法, 返回了封装了这些信息的 BoundSql 对象
+     * 所以我们进去看看, 是如何通过xml中编写的内容, 解析出sql来的;
+     *
+     * p-step-1.0062, 这里得到了SqlSource也就是包含了用于执行的sql, #{id}解析出来的id, 包括配置被封装到 SqlSource 中了
+     */
     SqlSource sqlSource = langDriver.createSqlSource(configuration, context, parameterTypeClass);
+
     StatementType statementType = StatementType.valueOf(context.getStringAttribute("statementType", StatementType.PREPARED.toString()));
     Integer fetchSize = context.getIntAttribute("fetchSize");
     Integer timeout = context.getIntAttribute("timeout");

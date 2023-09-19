@@ -169,6 +169,7 @@ public class XMLMapperBuilder extends BaseBuilder {
    * 构造方法仅仅是赋值, 主要在 parseStatementNode() 方法中进行解析, 我们进去看看解析过程
    */
   private void buildStatementFromContext(List<XNode> list, String requiredDatabaseId) {
+    //这就相当于是select标签集合
     for (XNode context : list) {
       final XMLStatementBuilder statementParser = new XMLStatementBuilder(configuration, builderAssistant, context, requiredDatabaseId);
       try {

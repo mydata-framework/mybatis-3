@@ -40,16 +40,41 @@ public class SqlSourceBuilder extends BaseBuilder {
     super(configuration);
   }
 
+  /**
+   * @param originalSql
+   * @param parameterType
+   * @param additionalParameters
+   * @return
+   *
+   * p-step-1.0056
+   * 这里originalSql为: select * from user1 where id = #{id} 经过解析得到的sql为: select * from user1 where id = ?
+   *
+   * 这里主要焦点是: GenericTokenParser parser 和 ParameterMappingTokenHandler handler
+   * 通过 GenericTokenParser parser 传入了 openToken , colseToken 和 handler 后 , 进行 parse() 方法执行解析;
+   *
+   */
   public SqlSource parse(String originalSql, Class<?> parameterType, Map<String, Object> additionalParameters) {
+
     ParameterMappingTokenHandler handler = new ParameterMappingTokenHandler(configuration, parameterType, additionalParameters);
     GenericTokenParser parser = new GenericTokenParser("#{", "}", handler);
+
     String sql;
     if (configuration.isShrinkWhitespacesInSql()) {
       sql = parser.parse(removeExtraWhitespaces(originalSql));
     } else {
+
+      //p-step-1.0057
+      //解析 #{id} sql 为 ? sql
+      //进入
       sql = parser.parse(originalSql);
     }
-    return new StaticSqlSource(configuration, sql, handler.getParameterMappings());
+
+    //p-step-1.0061
+    //通过GenericTokenParser 的 parse()方法, 将select标签中的sql解析出来了, 并且把参数解析出来了也就是#{id}这种对应放到了handler的parameterMappings中
+    //由这些信息组成了 SqlSource 对象
+    //然后现在返回到(0050)
+    StaticSqlSource staticSqlSource = new StaticSqlSource(configuration, sql, handler.getParameterMappings());
+    return staticSqlSource;
   }
 
   public static String removeExtraWhitespaces(String original) {
@@ -84,7 +109,8 @@ public class SqlSourceBuilder extends BaseBuilder {
 
     @Override
     public String handleToken(String content) {
-      parameterMappings.add(buildParameterMapping(content));
+      ParameterMapping parameterMapping = buildParameterMapping(content);
+      parameterMappings.add(parameterMapping);
       return "?";
     }
 
