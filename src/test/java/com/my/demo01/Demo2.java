@@ -12,9 +12,9 @@ import java.util.Map;
 
 /**
  * 源码剖析-1-Mybatis初始化是如何解析的全局配置文件?
- *
+ * <p>
  * 解析第一步, 怎么读取配置文件的?
- *
+ * <p>
  * flag: p-step-1.
  */
 public class Demo2 {
@@ -37,10 +37,24 @@ public class Demo2 {
     SqlSessionFactoryBuilder sqlSessionFactoryBuilder = new SqlSessionFactoryBuilder();
     SqlSessionFactory sqlSessionFactory = sqlSessionFactoryBuilder.build(resourceAsReader);
 
+    //p-step-1.0063
+    //这里获取到核心API层对象SqlSession
     SqlSession sqlSession = sqlSessionFactory.openSession();
     Map<String, Object> map = new HashMap<>();
     map.put("id", 73);
+    //p-step-1.0068
+    //这里开始使用sqlSession执行查询了
+    //这里我们应该知道 sqlSession 中包含了有哪些内容
+    //1 sqlSession中有Configuration, Configuration中有mappedStatements
+    //2 sqlSession中有执行器 Executor, 而Executor有tx对象, tx对象中包含了数据源和事务参数
     Object entity = sqlSession.selectOne("UserMapper.selectById", map);
+    //p-step-1.0094 执行到这里结束
+    System.out.println(entity);
+    sqlSession.close();
+
+    //可以尝试再次相同查询, 会走缓存
+    //Object entity2 = sqlSession.selectOne("UserMapper.selectById", map);
+
     System.out.println(entity);
   }
 }

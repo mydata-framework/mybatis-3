@@ -58,11 +58,19 @@ public class PreparedStatementHandler extends BaseStatementHandler {
     ps.addBatch();
   }
 
+  //p-step-1.0082
   @Override
   public <E> List<E> query(Statement statement, ResultHandler resultHandler) throws SQLException {
     PreparedStatement ps = (PreparedStatement) statement;
+
+    //这里已经执行了sql : select * from user1 where id = 73
     ps.execute();
-    return resultSetHandler.handleResultSets(ps);
+
+    //这里获取结果集
+    List list = resultSetHandler.handleResultSets(ps);
+
+    //p-step-1.0088
+    return list;
   }
 
   @Override

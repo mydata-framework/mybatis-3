@@ -136,6 +136,21 @@ public abstract class BaseExecutor implements Executor {
     return query(ms, parameter, rowBounds, resultHandler, key, boundSql);
   }
 
+  /**
+   *
+   * @param ms
+   * @param parameter
+   * @param rowBounds
+   * @param resultHandler
+   * @param key
+   * @param boundSql
+   * @return
+   * @param <E>
+   * @throws SQLException
+   * @see org.apache.ibatis.executor.BaseExecutor#close
+   *
+   * p-step-1.0076
+   */
   @SuppressWarnings("unchecked")
   @Override
   public <E> List<E> query(MappedStatement ms, Object parameter, RowBounds rowBounds, ResultHandler resultHandler, CacheKey key, BoundSql boundSql) throws SQLException {
@@ -149,12 +164,21 @@ public abstract class BaseExecutor implements Executor {
     List<E> list;
     try {
       queryStack++;
+
+      /** @see org.apache.ibatis.executor.BaseExecutor#close */
+      //Mybatis 一级缓存 , 一级缓存是 SqlSession 级别的, 因为 SqlSession 在close() 的时候会设置 localCache = null;
+
+      //这里看是通过本地缓存先获取, 如果没有获取到从数据库查询, 如果获取到了则是
       list = resultHandler == null ? (List<E>) localCache.getObject(key) : null;
+
       if (list != null) {
         handleLocallyCachedOutputParameters(ms, key, parameter, boundSql);
       } else {
+        //p-step-1.0077
         list = queryFromDatabase(ms, parameter, rowBounds, resultHandler, key, boundSql);
       }
+
+
     } finally {
       queryStack--;
     }
@@ -169,6 +193,8 @@ public abstract class BaseExecutor implements Executor {
         clearLocalCache();
       }
     }
+
+    //p-step-1.0092
     return list;
   }
 
@@ -322,14 +348,18 @@ public abstract class BaseExecutor implements Executor {
     List<E> list;
     localCache.putObject(key, EXECUTION_PLACEHOLDER);
     try {
+      //p-step-1.0078
       list = doQuery(ms, parameter, rowBounds, resultHandler, boundSql);
+      //p-step-1.0089
     } finally {
       localCache.removeObject(key);
     }
+    //p-step-1.0090
     localCache.putObject(key, list);
     if (ms.getStatementType() == StatementType.CALLABLE) {
       localOutputParameterCache.putObject(key, parameter);
     }
+    //p-step-1.0091 返回结果
     return list;
   }
 

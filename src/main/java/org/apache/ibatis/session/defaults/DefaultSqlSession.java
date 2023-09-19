@@ -72,9 +72,12 @@ public class DefaultSqlSession implements SqlSession {
 
   @Override
   public <T> T selectOne(String statement, Object parameter) {
+    //p-step-1.0069 进去
     // Popular vote was to return null on 0 results and throw exception on too many.
     List<T> list = this.selectList(statement, parameter);
+
     if (list.size() == 1) {
+      //p-step-1.0093
       return list.get(0);
     } else if (list.size() > 1) {
       throw new TooManyResultsException("Expected one result (or null) to be returned by selectOne(), but found: " + list.size());
@@ -137,17 +140,34 @@ public class DefaultSqlSession implements SqlSession {
 
   @Override
   public <E> List<E> selectList(String statement, Object parameter) {
+    //p-step-1.0070 进去
     return this.selectList(statement, parameter, RowBounds.DEFAULT);
   }
 
   @Override
   public <E> List<E> selectList(String statement, Object parameter, RowBounds rowBounds) {
+    //p-step-1.0071 进去
     return selectList(statement, parameter, rowBounds, Executor.NO_RESULT_HANDLER);
   }
 
+
+  /**
+   * @param statement
+   * @param parameter
+   * @param rowBounds
+   * @param handler
+   * @return
+   * @param <E>
+   *
+   * p-step-1.0072
+   * 这里使用了SqlSession的selectList通用API进行处理, 传如了statementId和参数parameter
+   */
   private <E> List<E> selectList(String statement, Object parameter, RowBounds rowBounds, ResultHandler handler) {
     try {
+      //1 首先通过statementId获取到MappedStatement, 而我们知道 MappedStatement 是对一个<select></select> 标签的整体封装, 其中有SqlSource, 参数值和响应值已经标签本身信息的一切封装
       MappedStatement ms = configuration.getMappedStatement(statement);
+      //2 然后将 MappedStatement 委托给executor去进行处理, 而executor我们知道是在获取SqlSession时就被设置到SqlSession中的执行器; 执行器中是包含了 数据源 , 事务对象信息的;
+      //class org.apache.ibatis.executor.CachingExecutor 进去
       return executor.query(ms, wrapCollection(parameter), rowBounds, handler);
     } catch (Exception e) {
       throw ExceptionFactory.wrapException("Error querying database.  Cause: " + e, e);

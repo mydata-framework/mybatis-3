@@ -286,6 +286,15 @@
       <version>8.4.1.jre8</version>
       <scope>provided</scope>
     </dependency>
+
+
+    <!--p6spy-->
+    <dependency>
+      <groupId>p6spy</groupId>
+      <artifactId>p6spy</artifactId>
+      <version>3.9.1</version>
+    </dependency>
+
   </dependencies>
 
   <build>

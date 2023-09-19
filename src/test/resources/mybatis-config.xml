@@ -9,10 +9,10 @@
 
             <dataSource type="POOLED">
                 <!--<property name="driver" value="com.mysql.jdbc.Driver"/>-->
-                <property name="driver" value="com.mysql.cj.jdbc.Driver"/>
+                <property name="driver" value="com.p6spy.engine.spy.P6SpyDriver"/>
                 <!--<property name="url" value="jdbc:mysql://localhost:3306/mytest"/>-->
                 <property name="url"
-                          value="jdbc:mysql://localhost:3306/mytest?useUnicode=true&amp;characterEncoding=utf8&amp;serverTimezone=Asia/Shanghai&amp;useSSL=false"/>
+                          value="jdbc:p6spy:mysql://localhost:3306/mytest?useUnicode=true&amp;characterEncoding=utf8&amp;serverTimezone=Asia/Shanghai&amp;useSSL=false"/>
                 <property name="username" value="root"/>
                 <property name="password" value=""/>
             </dataSource>

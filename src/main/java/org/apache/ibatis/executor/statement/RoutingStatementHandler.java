@@ -74,6 +74,7 @@ public class RoutingStatementHandler implements StatementHandler {
     return delegate.update(statement);
   }
 
+  //p-step-1.0081
   @Override
   public <E> List<E> query(Statement statement, ResultHandler resultHandler) throws SQLException {
     return delegate.query(statement, resultHandler);

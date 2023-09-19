@@ -82,13 +82,40 @@ public class CachingExecutor implements Executor {
     return delegate.queryCursor(ms, parameter, rowBounds);
   }
 
+  /**
+   *
+   * @param ms
+   * @param parameterObject
+   * @param rowBounds
+   * @param resultHandler
+   * @return
+   * @param <E>
+   * @throws SQLException
+   *
+   * p-step-1.0073
+   */
   @Override
   public <E> List<E> query(MappedStatement ms, Object parameterObject, RowBounds rowBounds, ResultHandler resultHandler) throws SQLException {
     BoundSql boundSql = ms.getBoundSql(parameterObject);
     CacheKey key = createCacheKey(ms, parameterObject, rowBounds, boundSql);
+    //进去
     return query(ms, parameterObject, rowBounds, resultHandler, key, boundSql);
   }
 
+  /**
+   *
+   * @param ms
+   * @param parameterObject
+   * @param rowBounds
+   * @param resultHandler
+   * @param key
+   * @param boundSql
+   * @return
+   * @param <E>
+   * @throws SQLException
+   *
+   * p-step-1.0074
+   */
   @Override
   public <E> List<E> query(MappedStatement ms, Object parameterObject, RowBounds rowBounds, ResultHandler resultHandler, CacheKey key, BoundSql boundSql)
       throws SQLException {
@@ -106,6 +133,8 @@ public class CachingExecutor implements Executor {
         return list;
       }
     }
+
+    //p-step-1.0075 进去
     return delegate.query(ms, parameterObject, rowBounds, resultHandler, key, boundSql);
   }
 

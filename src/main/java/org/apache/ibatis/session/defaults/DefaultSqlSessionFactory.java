@@ -31,6 +31,8 @@ import org.apache.ibatis.transaction.Transaction;
 import org.apache.ibatis.transaction.TransactionFactory;
 import org.apache.ibatis.transaction.managed.ManagedTransactionFactory;
 
+import javax.sql.DataSource;
+
 /**
  * @author Clinton Begin
  */
@@ -47,8 +49,14 @@ public class DefaultSqlSessionFactory implements SqlSessionFactory {
     this.configuration = configuration;
   }
 
+  /**
+   * @return
+   *
+   * p-step-1.0064
+   */
   @Override
   public SqlSession openSession() {
+    //进入
     return openSessionFromDataSource(configuration.getDefaultExecutorType(), null, false);
   }
 
@@ -92,14 +100,39 @@ public class DefaultSqlSessionFactory implements SqlSessionFactory {
     return configuration;
   }
 
+  /**
+   * @param execType
+   * @param level
+   * @param autoCommit
+   * @return
+   *
+   * p-step-1.0065
+   * 看看这里是如何获取到 SqlSession
+   * execType 是ExecutorType.SIMPLE ; TransactionIsolationLevel level 是null;  autoCommit 是false
+   *
+   */
   private SqlSession openSessionFromDataSource(ExecutorType execType, TransactionIsolationLevel level, boolean autoCommit) {
     Transaction tx = null;
     try {
+
       final Environment environment = configuration.getEnvironment();
+
+      //p-step-1.0066
+      //这里根据环境配置, 获取的是一个 JdbcTransactionFactory 的实例
+      //而 newTransaction 仅仅是 new JdbcTransaction(ds, level, autoCommit); new 了一个对象, 设置了这几个基础参数
+      //然后奖这个数据存储对象放到了 executor 对象中, 等待后续 Executor 执行查询时可以使用
       final TransactionFactory transactionFactory = getTransactionFactoryFromEnvironment(environment);
-      tx = transactionFactory.newTransaction(environment.getDataSource(), level, autoCommit);
+      DataSource dataSource = environment.getDataSource();
+      tx = transactionFactory.newTransaction(dataSource, level, autoCommit);
+
       final Executor executor = configuration.newExecutor(tx, execType);
-      return new DefaultSqlSession(configuration, executor, autoCommit);
+
+      //p-step-1.0067
+      //然后在把executor封装到SqlSession中返回
+      DefaultSqlSession defaultSqlSession = new DefaultSqlSession(configuration, executor, autoCommit);
+
+      return defaultSqlSession;
+
     } catch (Exception e) {
       closeTransaction(tx); // may have fetched a connection so lets call close()
       throw ExceptionFactory.wrapException("Error opening session.  Cause: " + e, e);

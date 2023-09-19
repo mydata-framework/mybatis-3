@@ -53,6 +53,19 @@ public class SimpleExecutor extends BaseExecutor {
     }
   }
 
+  /**
+   *
+   * @param ms
+   * @param parameter
+   * @param rowBounds
+   * @param resultHandler
+   * @param boundSql
+   * @return
+   * @param <E>
+   * @throws SQLException
+   *
+   * p-step-1.0079
+   */
   @Override
   public <E> List<E> doQuery(MappedStatement ms, Object parameter, RowBounds rowBounds, ResultHandler resultHandler, BoundSql boundSql) throws SQLException {
     Statement stmt = null;
@@ -60,6 +73,7 @@ public class SimpleExecutor extends BaseExecutor {
       Configuration configuration = ms.getConfiguration();
       StatementHandler handler = configuration.newStatementHandler(wrapper, ms, parameter, rowBounds, resultHandler, boundSql);
       stmt = prepareStatement(handler, ms.getStatementLog());
+      //p-step-1.0080
       return handler.query(stmt, resultHandler);
     } finally {
       closeStatement(stmt);
