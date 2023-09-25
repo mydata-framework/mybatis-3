@@ -125,6 +125,7 @@ public class DefaultSqlSessionFactory implements SqlSessionFactory {
       DataSource dataSource = environment.getDataSource();
       tx = transactionFactory.newTransaction(dataSource, level, autoCommit);
 
+      //这里返回了 CachingExecutor, 同时, CachingExecutor 中会放一个 SimpleExecutor, 所以类似一个包装器模式
       final Executor executor = configuration.newExecutor(tx, execType);
 
       //p-step-1.0067

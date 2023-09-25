@@ -52,6 +52,8 @@ public class Demo2 {
     System.out.println(entity);
     sqlSession.close();
 
+    sqlSession.rollback();
+
     //可以尝试再次相同查询, 会走缓存
     //Object entity2 = sqlSession.selectOne("UserMapper.selectById", map);
 
